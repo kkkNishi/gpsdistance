@@ -31,6 +31,8 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.SphericalUtil;
 import com.google.android.gms.ads.MobileAds;
 
+import java.util.Random;
+
 public class MapsActivity extends FragmentActivity
         implements OnMapReadyCallback,
         LocationListener, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMapClickListener {
@@ -44,8 +46,9 @@ public class MapsActivity extends FragmentActivity
     private Polyline mPolyline;
     private AdView mAdView;
     private InterstitialAd mInterstitialAd;
-    private int mCount = 0;
-
+    private AdRequest mInterstitialAdRequest;
+    private String interstitial_ad_unit_id;
+    private int mInterstitialInterval = 5;
     /*
     * 起動直後の処理
     * */
@@ -61,16 +64,29 @@ public class MapsActivity extends FragmentActivity
         // OnCreate でロケーションマネージャを取得
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
+        // AdModの初期化
+        MobileAds.initialize(this, getString(R.string.ad_app_id));
 
-        // AdModの初期化（AP）
-        MobileAds.initialize(this, getString(R.string.app_id));
-
-
-
-        // AdModの初期化(インタースティシャル)
+        //インタースティシャル
         mInterstitialAd = new InterstitialAd(this);
-        mInterstitialAd.setAdUnitId(getString(R.string.interstitial_ad_unit_id));
-        mInterstitialAd.loadAd(new AdRequest.Builder().build());
+        if (getString(R.string.debug_flg).equals("debug")) {
+            Log.d("DEBUG", String.format("admod setting is debug."));
+            //バナー
+//            banner_ad_unit_id =  getString(R.string.test_banner_ad_unit_id);
+            //インタースティシャル
+            interstitial_ad_unit_id = getString(R.string.test_interstitial_ad_unit_id);
+            mInterstitialAdRequest = new AdRequest.Builder().addTestDevice(getString(R.string.test_device_id_01)).build();
+        } else {
+            Log.d("DEBUG", String.format("admod setting is release."));
+            //バナー
+//            banner_ad_unit_id =  getString(R.string.banner_ad_unit_id);
+            //インタースティシャル
+            interstitial_ad_unit_id = getString(R.string.interstitial_ad_unit_id);
+            mInterstitialAdRequest = new AdRequest.Builder().build();
+        }
+        mInterstitialAd.setAdUnitId(interstitial_ad_unit_id);
+        mInterstitialAd.loadAd(mInterstitialAdRequest);
+
     }
 
     /**
@@ -111,7 +127,14 @@ public class MapsActivity extends FragmentActivity
 
         // AdModの初期化(バナー)
         mAdView = findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
+//        mAdView.setAdUnitId(banner_ad_unit_id);
+//        mAdView.setAdSize(AdSize.BANNER);
+        AdRequest adRequest;
+        if (getString(R.string.debug_flg).equals("debug")) {
+            adRequest = new AdRequest.Builder().addTestDevice(getString(R.string.test_device_id_01)).build();
+        } else {
+            adRequest = new AdRequest.Builder().build();
+        }
         mAdView.loadAd(adRequest);
     }
 
@@ -121,20 +144,6 @@ public class MapsActivity extends FragmentActivity
     * */
     @Override
     public void onMapClick(LatLng latLng) {
-
-        // AdModの初期化(インタースティシャル)　2回に1回
-        if (mCount == 0) {
-            if (mInterstitialAd.isLoaded()) {
-                mInterstitialAd.show();
-            } else {
-                Log.d("TAG", "The interstitial wasn't loaded yet.");
-            }
-            mCount++;
-        } else if (mCount > 3) {
-            mCount = 0;
-        }
-
-
         //以前のものを削除
         if (mMarker != null) {
             mMarker.remove();
@@ -157,7 +166,7 @@ public class MapsActivity extends FragmentActivity
         mPolyline = mMap.addPolyline(straight);
 
         //タップした位置と現在地の距離を測定（メートル）
-        double distance ;
+        double distance;
         double distanceYard = 0.0;
         //Google Maps Android API Utility Library を使用
         distance = SphericalUtil.computeDistanceBetween(latLng, mCurrentLng);
@@ -167,6 +176,28 @@ public class MapsActivity extends FragmentActivity
         }
         //少数点以下は切り捨てて表示
         Toast.makeText(getApplicationContext(), getString(R.string.distance_m, (int) distanceYard, (int) distance), Toast.LENGTH_LONG).show();
+
+        // ランダムで表示
+        shoInterstitialAd(mInterstitialInterval);
+    }
+
+    /*
+    * ランダムで0～10を算出し、引数未満なら広告を表示
+    * */
+    private void shoInterstitialAd(int limit) {
+        Random rand = new Random();
+        int ran = rand.nextInt(limit);
+
+        // ランダムが0の時表示
+        Log.d("DEBUG", String.format("ran:%d", ran));
+        if (ran == 0) {
+            if (mInterstitialAd.isLoaded()) {
+                Log.d("DEBUG", String.format("shoInterstitialAd"));
+                mInterstitialAd.show();
+            } else {
+                Log.d("DEBUG", "The interstitial wasn't loaded yet.");
+            }
+        }
     }
 
     /*
@@ -175,6 +206,9 @@ public class MapsActivity extends FragmentActivity
     @Override
     protected void onResume() {
         super.onResume();
+
+        //ランダムで広告配信
+        shoInterstitialAd(mInterstitialInterval);
 
     }
 

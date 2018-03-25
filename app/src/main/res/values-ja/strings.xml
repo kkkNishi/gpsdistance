@@ -3,12 +3,18 @@
     <string name="title_activity_maps">GpsDistance</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
-    <string name="setting">Setting</string>
+    <string name="setting">設定</string>
     <string name="gpsenable">位置情報サービスを有効化してください。</string>
     <string name="not_start_app">位置情報サービスが無効化されています。</string>
     <string name="distance_m">距離:%d yds(%d m)</string>
-    <string name="app_id">ca-app-pub-8521609348797405~2202446887</string>
+
+    <!--AdMod-->
+    <string name="debug_flg">release</string><!--debug or release-->
+    <string name="ad_app_id">ca-app-pub-8521609348797405~2202446887</string>
     <string name="banner_ad_unit_id">ca-app-pub-8521609348797405/5382255941</string>
     <string name="interstitial_ad_unit_id">ca-app-pub-8521609348797405/9467527535</string>
+    <string name="test_banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="test_interstitial_ad_unit_id">ca-app-pub-3940256099942544/1033173712</string>
+    <string name="test_device_id_01">92BE571466AEDC7A1302585965B18C21</string>
 
 </resources>
